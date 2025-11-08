@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한국 현대사 대통령 매칭 게임</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            position: relative;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .rules {
+            background: #f8f9ff;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            line-height: 1.8;
+        }
+
+        .rules h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .rules p, .rules ul {
+            margin-bottom: 10px;
+            font-size: 1.05em;
+        }
+
+        .rules ul {
+            margin-left: 20px;
+        }
+
+        .rules li {
+            margin-bottom: 8px;
+        }
+
+        .btn {
+            display: block;
+            width: 200px;
+            margin: 30px auto;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .game-screen {
+            display: none;
+            position: relative;
+            height: 600px;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9ff;
+            border-radius: 10px;
+        }
+
+        .round-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .timer {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        .game-area {
+            position: relative;
+            height: 400px;
+            background: linear-gradient(to bottom, #f0f4ff 0%, #ffffff 100%);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 3px solid #667eea;
+        }
+
+        .card {
+            position: absolute;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            min-width: 300px;
+            border: 3px solid #667eea;
+            animation: fallDown 3s linear;
+        }
+
+        @keyframes fallDown {
+            from {
+                top: -100px;
+            }
+            to {
+                top: 450px;
+            }
+        }
+
+        .baskets {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            gap: 15px;
+        }
+
+        .basket {
+            flex: 1;
+            padding: 25px 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 3px solid transparent;
+        }
+
+        .basket:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.5);
+            border-color: #ffd700;
+        }
+
+        .basket:active {
+            transform: scale(0.95);
+        }
+
+        .message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 30px 50px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            font-size: 1.5em;
+            font-weight: bold;
+            z-index: 1000;
+            display: none;
+            border: 3px solid #667eea;
+        }
+
+        .message.correct {
+            color: #10b981;
+            border-color: #10b981;
+        }
+
+        .message.wrong {
+            color: #ef4444;
+            border-color: #ef4444;
+        }
+
+        .result-screen {
+            display: none;
+            text-align: center;
+        }
+
+        .result-screen h2 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+        }
+
+        .score-box {
+            background: #f8f9ff;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-size: 1.3em;
+        }
+
+        .score-box p {
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        .final-score {
+            font-size: 2em;
+            color: #764ba2;
+            margin-top: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .progress-info {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 1.1em;
+            color: #667eea;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 시작 화면 -->
+        <div id="startScreen">
+            <h1>한국 현대사 대통령 매칭 게임</h1>
+            <div class="subtitle">
+                화면 상단에서 내려오는 키워드 카드를 보고,<br>
+                해당 키워드와 관련된 대통령을 클릭하세요.<br>
+                1라운드와 2라운드로 나뉘어 진행됩니다.
+            </div>
+            
+            <div id="rules1" class="rules">
+                <h2>게임 규칙 - 1라운드</h2>
+                <p><strong>박정희, 전두환 정부의 대표 키워드 7개씩 출제</strong></p>
+                <ul>
+                    <li>문제를 맞히거나 틀려도 점수 변동 없음</li>
+                    <li>틀리거나 카드가 내려가 버린 키워드들은 '맞힐 때까지' 다시 나타납니다</li>
+                    <li>'걸린 시간'에 따라 점수 차등 지급:
+                        <ul>
+                            <li>1~30초 → 30점</li>
+                            <li>31~40초 → 20점</li>
+                            <li>41~50초 → 10점</li>
+                            <li>51초 이상 → 5점</li>
+                        </ul>
+                    </li>
+                    <li>모든 키워드 '정답' 완료 시 종료</li>
+                </ul>
+                <button class="btn" onclick="showRules2()">다음으로</button>
+            </div>
+
+            <div id="rules2" class="rules hidden">
+                <h2>게임 규칙 - 2라운드</h2>
+                <p><strong>박정희, 전두환, 노태우, 김영삼, 김대중 정부의 키워드 출제</strong></p>
+                <ul>
+                    <li>제한 시간 100초 동안 최대한 많은 키워드를 맞히는 것이 목표입니다</li>
+                    <li>맞히면 점수 획득(2점, 3점, 5점으로 키워드별 상이함), 틀리거나 내려간 경우 점수 없음</li>
+                    <li>정답을 맞힐 때까지 재출제되지 않습니다</li>
+                    <li>제한 시간 종료 또는 모든 키워드 분류 완료 시 종료</li>
+                </ul>
+                <p style="text-align: center; margin-top: 20px; font-style: italic;">
+                    *'다음으로'를 클릭하면 게임이 시작됩니다.
+                </p>
+                <button class="btn" onclick="startRound1()">다음으로</button>
+            </div>
+        </div>
+
+        <!-- 게임 화면 -->
+        <div id="gameScreen" class="game-screen">
+            <div class="game-header">
+                <div class="round-title" id="roundTitle">1라운드</div>
+                <div class="timer" id="timer">00:00</div>
+            </div>
+            <div class="progress-info" id="progressInfo"></div>
+            <div class="game-area" id="gameArea"></div>
+            <div class="baskets" id="baskets"></div>
+        </div>
+
+        <!-- 결과 화면 -->
+        <div id="resultScreen" class="result-screen">
+            <h2>게임 종료!</h2>
+            <div class="score-box">
+                <p>1라운드 점수: <span id="round1Score">0</span>점</p>
+                <p>2라운드 점수: <span id="round2Score">0</span>점</p>
+                <p class="final-score">최종 점수: <span id="finalScore">0</span>점</p>
+            </div>
+            <p style="margin-top: 20px; color: #666;">ESC 버튼을 눌러 게임 종료</p>
+        </div>
+
+        <!-- 메시지 표시 -->
+        <div id="message" class="message"></div>
+    </div>
+
+    <script>
+        // 게임 데이터
+        const round1Data = [
+            { keyword: '5.16 군사정변', president: '박정희' },
+            { keyword: '부마 민주 항쟁', president: '박정희' },
+            { keyword: '7차 개헌(유신 헌법)', president: '박정희' },
+            { keyword: '중앙정보부 설치', president: '박정희' },
+            { keyword: 'YH 무역 사건', president: '박정희' },
+            { keyword: '경부 고속 국도 개통', president: '박정희' },
+            { keyword: '베트남 파병', president: '박정희' },
+            { keyword: '12.12 사태', president: '전두환' },
+            { keyword: '5.18 민주화운동', president: '전두환' },
+            { keyword: '박종철 고문치사 사건', president: '전두환' },
+            { keyword: '6월 민주 항쟁', president: '전두환' },
+            { keyword: '야간 통행금지 해제', president: '전두환' },
+            { keyword: '4.13 호헌 조치', president: '전두환' },
+            { keyword: '해외여행 자유화', president: '전두환' }
+        ];
+
+        const round2Data = [
+            { keyword: '수출 100억불 돌파', president: '박정희', points: 2 },
+            { keyword: '김대중 납치사건', president: '박정희', points: 3 },
+            { keyword: '개헌 청원 100만 인 서명 운동', president: '박정희', points: 5 },
+            { keyword: '제 2차 인혁당 사건', president: '박정희', points: 5 },
+            { keyword: '3.1 민주 구국 선언', president: '박정희', points: 5 },
+            { keyword: '7.4 남북 공동 성명', president: '박정희', points: 3 },
+            { keyword: '통일 주체 국민 회의', president: '박정희', points: 3 },
+            { keyword: '3선 개헌', president: '박정희', points: 2 },
+            { keyword: '6.3 시위', president: '박정희', points: 2 },
+            { keyword: '부천 경찰서 성 고문 사건', president: '전두환', points: 3 },
+            { keyword: '프로 스포츠 육성', president: '전두환', points: 2 },
+            { keyword: '언론 통폐합', president: '전두환', points: 2 },
+            { keyword: '과외 전면 금지', president: '전두환', points: 2 },
+            { keyword: '3저 호황', president: '전두환', points: 3 },
+            { keyword: '국가 보위 비상 대책 위원회', president: '전두환', points: 5 },
+            { keyword: '8차 개헌(7년 단임, 선거인단)', president: '전두환', points: 5 },
+            { keyword: '최초 이산가족 상봉', president: '전두환', points: 5 },
+            { keyword: '여소 야대 국회', president: '노태우', points: 2 },
+            { keyword: '3당 합당, 민주 자유당 창당', president: '노태우', points: 2 },
+            { keyword: '지방 자치제 부분적 실시', president: '노태우', points: 3 },
+            { keyword: '북방외교', president: '노태우', points: 3 },
+            { keyword: '남북한 UN 동시 가입', president: '노태우', points: 3 },
+            { keyword: '남북 기본 합의서 채택', president: '노태우', points: 3 },
+            { keyword: '금융실명제 실시', president: '김영삼', points: 2 },
+            { keyword: '역사바로세우기', president: '김영삼', points: 2 },
+            { keyword: '지방 자치제 전면적 실시', president: '김영삼', points: 3 },
+            { keyword: 'IMF 구제 금융 신청', president: '김영삼', points: 2 },
+            { keyword: 'OECD 가입', president: '김영삼', points: 3 },
+            { keyword: '헌정 사상 최초 여야 간 평화적 정권 교체', president: '김대중', points: 2 },
+            { keyword: '외환 위기 극복', president: '김대중', points: 2 },
+            { keyword: '햇볕 정책', president: '김대중', points: 3 },
+            { keyword: '6.15 남북 공동 선언', president: '김대중', points: 3 },
+            { keyword: '정주영 소떼 방북', president: '김대중', points: 3 }
+        ];
+
+        // 게임 상태
+        let currentRound = 1;
+        let timer = 0;
+        let timerInterval = null;
+        let currentCard = null;
+        let round1Score = 0;
+        let round2Score = 0;
+        let round1Questions = [];
+        let round2Questions = [];
+        let wrongAnswers = [];
+        let cardTimeout = null;
+
+        // 1라운드용 문제 선별 (각 대통령별 7개씩)
+        function selectRound1Questions() {
+            const parkQuestions = round1Data.filter(q => q.president === '박정희');
+            const jeonQuestions = round1Data.filter(q => q.president === '전두환');
+            round1Questions = [...parkQuestions, ...jeonQuestions];
+            shuffleArray(round1Questions);
+        }
+
+        // 배열 섞기
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // 규칙 2 보여주기
+        function showRules2() {
+            document.getElementById('rules1').classList.add('hidden');
+            document.getElementById('rules2').classList.remove('hidden');
+        }
+
+        // 1라운드 시작
+        function startRound1() {
+            currentRound = 1;
+            selectRound1Questions();
+            wrongAnswers = [];
+            
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            document.getElementById('roundTitle').textContent = '1라운드';
+            
+            // 바구니 설정
+            const baskets = document.getElementById('baskets');
+            baskets.innerHTML = `
+                <div class="basket" onclick="checkAnswer('박정희')">박정희</div>
+                <div class="basket" onclick="checkAnswer('전두환')">전두환</div>
+            `;
+            
+            // 타이머 시작
+            timer = 0;
+            timerInterval = setInterval(() => {
+                timer++;
+                updateTimer();
+            }, 1000);
+            
+            nextCard();
+        }
+
+        // 2라운드 시작
+        function startRound2() {
+            currentRound = 2;
+            round2Questions = [...round2Data];
+            shuffleArray(round2Questions);
+            
+            document.getElementById('roundTitle').textContent = '2라운드';
+            
+            // 바구니 설정
+            const baskets = document.getElementById('baskets');
+            baskets.innerHTML = `
+                <div class="basket" onclick="checkAnswer('박정희')">박정희</div>
+                <div class="basket" onclick="checkAnswer('전두환')">전두환</div>
+                <div class="basket" onclick="checkAnswer('노태우')">노태우</div>
+                <div class="basket" onclick="checkAnswer('김영삼')">김영삼</div>
+                <div class="basket" onclick="checkAnswer('김대중')">김대중</div>
+            `;
+            
+            // 타이머 시작 (100초 카운트다운)
+            timer = 100;
+            timerInterval = setInterval(() => {
+                timer--;
+                updateTimer();
+                if (timer <= 0) {
+                    endGame();
+                }
+            }, 1000);
+            
+            nextCard();
+        }
+
+        // 타이머 업데이트
+        function updateTimer() {
+            const minutes = Math.floor(Math.abs(timer) / 60);
+            const seconds = Math.abs(timer) % 60;
+            document.getElementById('timer').textContent = 
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        // 다음 카드
+        function nextCard() {
+            if (currentRound === 1) {
+                updateProgressInfo();
+                
+                if (round1Questions.length === 0 && wrongAnswers.length === 0) {
+                    // 1라운드 종료
+                    clearInterval(timerInterval);
+                    calculateRound1Score();
+                    showMessage('1라운드 종료!', 'correct');
+                    setTimeout(() => {
+                        startRound2();
+                    }, 2000);
+                    return;
+                }
+                
+                if (round1Questions.length === 0 && wrongAnswers.length > 0) {
+                    // 틀린 문제만 남음
+                    round1Questions = [...wrongAnswers];
+                    wrongAnswers = [];
+                    shuffleArray(round1Questions);
+                }
+                
+                currentCard = round1Questions.shift();
+            } else {
+                updateProgressInfo();
+                
+                if (round2Questions.length === 0) {
+                    endGame();
+                    return;
+                }
+                currentCard = round2Questions.shift();
+            }
+            
+            showCard(currentCard.keyword);
+        }
+
+        // 진행 상황 표시
+        function updateProgressInfo() {
+            const progressInfo = document.getElementById('progressInfo');
+            if (currentRound === 1) {
+                const totalQuestions = 14;
+                const remaining = round1Questions.length + wrongAnswers.length;
+                const completed = totalQuestions - remaining;
+                progressInfo.textContent = `진행: ${completed}/${totalQuestions} 문제`;
+            } else {
+                const totalQuestions = round2Data.length;
+                const completed = totalQuestions - round2Questions.length;
+                progressInfo.textContent = `진행: ${completed}/${totalQuestions} 문제`;
+            }
+        }
+
+        // 카드 표시
+        function showCard(keyword) {
+            const gameArea = document.getElementById('gameArea');
+            gameArea.innerHTML = '';
+            
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.textContent = keyword;
+            gameArea.appendChild(card);
+            
+            // 3초 후 카드가 사라지면
+            cardTimeout = setTimeout(() => {
+                if (currentRound === 1) {
+                    wrongAnswers.push(currentCard);
+                }
+                nextCard();
+            }, 3000);
+        }
+
+        // 답변 확인
+        function checkAnswer(selectedPresident) {
+            if (!currentCard) return;
+            
+            clearTimeout(cardTimeout);
+            
+            if (currentCard.president === selectedPresident) {
+                // 정답
+                showMessage('정답!', 'correct');
+                
+                if (currentRound === 2) {
+                    round2Score += currentCard.points;
+                }
+                
+                setTimeout(() => {
+                    nextCard();
+                }, 800);
+            } else {
+                // 오답
+                showMessage('오답!', 'wrong');
+                
+                if (currentRound === 1) {
+                    wrongAnswers.push(currentCard);
+                }
+                
+                setTimeout(() => {
+                    nextCard();
+                }, 800);
+            }
+        }
+
+        // 메시지 표시
+        function showMessage(text, type) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.className = `message ${type}`;
+            message.style.display = 'block';
+            
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 800);
+        }
+
+        // 1라운드 점수 계산
+        function calculateRound1Score() {
+            if (timer <= 30) {
+                round1Score = 30;
+            } else if (timer <= 40) {
+                round1Score = 20;
+            } else if (timer <= 50) {
+                round1Score = 10;
+            } else {
+                round1Score = 5;
+            }
+        }
+
+        // 게임 종료
+        function endGame() {
+            clearInterval(timerInterval);
+            clearTimeout(cardTimeout);
+            
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('resultScreen').style.display = 'block';
+            
+            document.getElementById('round1Score').textContent = round1Score;
+            document.getElementById('round2Score').textContent = round2Score;
+            document.getElementById('finalScore').textContent = round1Score + round2Score;
+        }
+
+        // ESC 키로 종료
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                location.reload();
+            }
+        });
+    </script>
+</body>
+</html>
